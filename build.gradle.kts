@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.0"
+    id("org.jetbrains.dokka") version "1.9.20"
     `maven-publish`
     signing
 }
@@ -31,8 +32,16 @@ tasks {
     }
     create<Jar>("sourcesJar") {
         archiveClassifier.set("sources")
-        from(sourceSets["main"].allSource)
     }
+    create<Jar>("javadocJar") {
+        archiveClassifier.set("javadoc")
+        dependsOn("dokkaHtml")
+        from("${layout.buildDirectory.asFile.orNull}/dokka/html")
+    }
+}
+configure<JavaPluginExtension> {
+    withSourcesJar()
+    withJavadocJar()
 }
 kotlin {
     jvmToolchain(21)
@@ -43,7 +52,6 @@ publishing {
         create<MavenPublication>("maven") {
             artifactId = rootProject.name
             from(rootProject.components["java"])
-            artifact(rootProject.tasks["sourcesJar"])
 
             repositories {
                 maven {
@@ -65,6 +73,13 @@ publishing {
             pom {
                 name.set(rootProject.name)
                 description.set(rootProject.description)
+                developers {
+                    developer {
+                        id.set("andjsrk")
+                        name.set("andjsrk")
+                        email.set("andjsrk0213@gmail.com")
+                    }
+                }
                 url.set("https://github.com/andjsrk/commandapi-safeext")
                 licenses {
                     license {
